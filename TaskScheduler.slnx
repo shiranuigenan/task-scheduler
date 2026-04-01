@@ -1,0 +1,8 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/TaskScheduler.Api/TaskScheduler.Api.csproj" />
+    <Project Path="src/TaskScheduler.Application/TaskScheduler.Application.csproj" />
+    <Project Path="src/TaskScheduler.Domain/TaskScheduler.Domain.csproj" />
+    <Project Path="src/TaskScheduler.Infrastructure/TaskScheduler.Infrastructure.csproj" />
+  </Folder>
+</Solution>

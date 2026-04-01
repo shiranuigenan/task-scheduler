@@ -1,0 +1,32 @@
+## Build outputs
+bin/
+obj/
+
+## User-specific files
+*.user
+*.rsuser
+*.suo
+
+## IDE folders
+.vs/
+.vscode/
+
+## Rider / ReSharper
+.idea/
+_ReSharper*/
+*.DotSettings.user
+
+## Logs
+*.log
+
+## Local databases and temp data
+*.db
+*.db-shm
+*.db-wal
+*.sqlite
+*.sqlite3
+
+## OS files
+.DS_Store
+Thumbs.db
+
