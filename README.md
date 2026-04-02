@@ -32,4 +32,4 @@ Bu proje, onceden tanimli job'lari belirli araliklarla calistiran tek-proje bir 
 3. Calistir:
    - `dotnet run --project src/TaskScheduler.Api/TaskScheduler.Api.csproj`
 4. Swagger:
-   - `https://localhost:<port>/swagger`
+   - `http://localhost:<port>/swagger`
