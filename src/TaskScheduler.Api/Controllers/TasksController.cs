@@ -6,7 +6,7 @@ namespace TaskScheduler.Api.Controllers;
 
 [ApiController]
 [Route("api/tasks")]
-public sealed class TasksController(IScheduledTaskService taskService) : ControllerBase
+public sealed class TasksController(ScheduledTaskService taskService) : ControllerBase
 {
     [HttpGet]
     [ProducesResponseType(typeof(IReadOnlyList<TaskResponse>), StatusCodes.Status200OK)]

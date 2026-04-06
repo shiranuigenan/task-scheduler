@@ -19,12 +19,12 @@ public static class DependencyInjection
         services.AddDbContext<AppDbContext>(options =>
             options.UseNpgsql(connectionString));
 
-        services.AddSingleton<IGroupLockManager, GroupLockManager>();
+        services.AddSingleton<GroupLockManager>();
         services.AddScoped<IScheduledTaskRepository, ScheduledTaskRepository>();
         services.AddSingleton<IJobFactory, JobFactory>();
         services.AddSingleton<IJobHandler, SendEmailJobHandler>();
         services.AddSingleton<IJobHandler, CleanupJobHandler>();
-        services.AddScoped<IScheduledTaskService, ScheduledTaskService>();
+        services.AddScoped<ScheduledTaskService>();
         services.AddHostedService<TaskSchedulerBackgroundService>();
 
         return services;

@@ -24,7 +24,7 @@ namespace TaskScheduler.Infrastructure.Scheduling;
 /// </summary>
 public sealed class TaskSchedulerBackgroundService(
     IServiceScopeFactory scopeFactory,
-    IGroupLockManager groupLockManager,
+    GroupLockManager groupLockManager,
     ILogger<TaskSchedulerBackgroundService> logger) : BackgroundService
 {
     // TaskSchedulerBackgroundService'in DB'ye kaç saniyede bir yoklama yapacağını belirler.

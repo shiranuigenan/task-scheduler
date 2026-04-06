@@ -1,5 +1,4 @@
 using System.Collections.Concurrent;
-using TaskScheduler.Application.Abstractions;
 
 namespace TaskScheduler.Infrastructure.Scheduling;
 
@@ -13,7 +12,7 @@ namespace TaskScheduler.Infrastructure.Scheduling;
 /// Lock alındığında, çağıran tarafa "lease" gibi davranan bir `IAsyncDisposable` döner.
 /// Lease dispose edilince ilgili semaphore serbest bırakılır (lock release edilir).
 /// </summary>
-public sealed class GroupLockManager : IGroupLockManager
+public sealed class GroupLockManager
 {
     // groupKey -> o group için tek slotlu semaphore mapping.
     // ConcurrentDictionary kullanmamızın nedeni; aynı anda birden fazla thread (veya task) lock denemesi yapabilir.

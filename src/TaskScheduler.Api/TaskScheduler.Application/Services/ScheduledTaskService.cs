@@ -7,7 +7,7 @@ namespace TaskScheduler.Application.Services;
 
 public sealed class ScheduledTaskService(
     IScheduledTaskRepository repository,
-    IJobFactory jobFactory) : IScheduledTaskService
+    IJobFactory jobFactory)
 {
     // Kullanıcıya ait task'ları DB'den çekip API response formatına dönüştüren servis metodu.
     // Not: "Controller -> Service -> Repository" akışında asıl veri erişimi repository üzerinden yapılır.
