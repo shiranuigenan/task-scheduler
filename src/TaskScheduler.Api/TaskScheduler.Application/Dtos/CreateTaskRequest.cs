@@ -14,7 +14,6 @@ public sealed class CreateTaskRequest
 
     public string? GroupKey { get; set; }
 
-    /// <summary>Optional JSON object; stored as ParametersJson.</summary>
     public JsonElement? Parameters { get; set; }
 
     [Range(0, 100)]

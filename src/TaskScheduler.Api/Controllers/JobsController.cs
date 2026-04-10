@@ -5,7 +5,7 @@ namespace TaskScheduler.Api.Controllers;
 
 [ApiController]
 [Route("api/jobs")]
-public sealed class JobsController(IJobFactory jobFactory) : ControllerBase
+public sealed class JobsController(JobFactory jobFactory) : ControllerBase
 {
     [HttpGet]
     [ProducesResponseType(typeof(IReadOnlyList<string>), StatusCodes.Status200OK)]

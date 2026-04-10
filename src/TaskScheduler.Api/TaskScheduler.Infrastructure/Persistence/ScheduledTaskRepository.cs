@@ -1,10 +1,9 @@
 using Microsoft.EntityFrameworkCore;
-using TaskScheduler.Application.Abstractions;
 using TaskScheduler.Domain.Entities;
 
 namespace TaskScheduler.Infrastructure.Persistence;
 
-public sealed class ScheduledTaskRepository(AppDbContext db) : IScheduledTaskRepository
+public sealed class ScheduledTaskRepository(AppDbContext db)
 {
     public async Task<IReadOnlyList<ScheduledTask>> GetAllAsync(CancellationToken cancellationToken = default) =>
         await db.ScheduledTasks.AsNoTracking().OrderBy(t => t.NextRunAt).ToListAsync(cancellationToken);

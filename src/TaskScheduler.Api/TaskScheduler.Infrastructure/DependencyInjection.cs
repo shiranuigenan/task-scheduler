@@ -1,7 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using TaskScheduler.Application.Abstractions;
 using TaskScheduler.Application.Jobs;
 using TaskScheduler.Application.Services;
 using TaskScheduler.Infrastructure.Persistence;
@@ -20,8 +19,8 @@ public static class DependencyInjection
             options.UseNpgsql(connectionString));
 
         services.AddSingleton<GroupLockManager>();
-        services.AddScoped<IScheduledTaskRepository, ScheduledTaskRepository>();
-        services.AddSingleton<IJobFactory, JobFactory>();
+        services.AddScoped<ScheduledTaskRepository>();
+        services.AddSingleton<JobFactory>();
         services.AddSingleton<IJobHandler, SendEmailJobHandler>();
         services.AddSingleton<IJobHandler, CleanupJobHandler>();
         services.AddScoped<ScheduledTaskService>();

@@ -1,6 +1,6 @@
 namespace TaskScheduler.Application.Jobs;
 
-public sealed class JobFactory : IJobFactory
+public sealed class JobFactory
 {
     private readonly IReadOnlyDictionary<string, IJobHandler> _handlers;
 
