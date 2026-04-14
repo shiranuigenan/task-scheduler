@@ -9,13 +9,13 @@ public sealed class ScheduledTaskService(
     ScheduledTaskRepository repository,
     JobFactory jobFactory)
 {
-    public async Task<IReadOnlyList<TaskResponse>> GetAllAsync(CancellationToken cancellationToken = default)
+    public IReadOnlyList<TaskResponse> GetAll(CancellationToken cancellationToken = default)
     {
-        var items = await repository.GetAllAsync(cancellationToken);
+        var items = repository.GetAll(cancellationToken);
         return items.Select(Map).ToList();
     }
 
-    public async Task<TaskResponse> CreateAsync(CreateTaskRequest request, CancellationToken cancellationToken = default)
+    public TaskResponse Create(CreateTaskRequest request, CancellationToken cancellationToken = default)
     {
         if (jobFactory.Resolve(request.JobName) is null)
             throw new InvalidOperationException($"Unknown job: '{request.JobName}'.");
@@ -36,13 +36,13 @@ public sealed class ScheduledTaskService(
             GroupKey = string.IsNullOrWhiteSpace(request.GroupKey) ? null : request.GroupKey.Trim(),
         };
 
-        await repository.AddAsync(entity, cancellationToken);
+        repository.Add(entity, cancellationToken);
         return Map(entity);
     }
 
-    public async Task ActivateAsync(Guid id, CancellationToken cancellationToken = default)
+    public void Activate(Guid id, CancellationToken cancellationToken = default)
     {
-        var entity = await repository.GetByIdAsync(id, cancellationToken)
+        var entity = repository.GetById(id, cancellationToken)
             ?? throw new KeyNotFoundException($"Task '{id}' was not found.");
 
         entity.IsActive = true;
@@ -51,12 +51,12 @@ public sealed class ScheduledTaskService(
         if (entity.NextRunAt <= now)
             entity.NextRunAt = now;
 
-        await repository.UpdateAsync(entity, cancellationToken);
+        repository.Update(entity, cancellationToken);
     }
 
-    public async Task DeleteAsync(Guid id, CancellationToken cancellationToken = default)
+    public void Delete(Guid id, CancellationToken cancellationToken = default)
     {
-        if (!await repository.DeleteAsync(id, cancellationToken))
+        if (!repository.Delete(id, cancellationToken))
             throw new KeyNotFoundException($"Task '{id}' was not found.");
     }
 

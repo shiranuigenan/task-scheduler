@@ -8,17 +8,19 @@
 
 ## Coding Rules
 - SOLID prensiplerine uy
-- Tüm I/O işlemleri async/await olmalı
+- Veri erişimi ve API katmanında **senkron** I/O kullanılacak (EF Core: `ToList`, `SaveChanges`, `ExecuteDelete` vb.; `*Async` metotlar tercih edilmez)
+- `async` / `await` kullanılmaz; **istisna:** `BackgroundService` için `ExecuteAsync` imzası framework gereği korunur, içerik senkron kalır (bekleme `CancellationToken.WaitHandle`, paralel iş `Task.Run`)
 - Dependency Injection zorunlu
 - Entity'ler direkt API'de kullanılmamalı (DTO kullan)
 
 ## Scheduler Rules
 - BackgroundService kullanılmalı
+- Poll döngüsü senkron; due task çalıştırma `Task.Run` ile fire-and-forget (poll’u bloklamamalı)
 - Task execution fire-and-forget ama kontrollü olmalı
 - Her task ayrı scope içinde çalışmalı
 
 ## Job System Rules
-- Tüm job'lar IJobHandler interface'ini implement etmeli
+- Tüm job'lar `IJobHandler` arayüzünü implement etmeli (`void Execute(...)`, `Task` dönüşü yok)
 - Job selection string JobName üzerinden yapılmalı
 - Parametreler JSON string olarak taşınmalı
 

@@ -5,36 +5,46 @@ namespace TaskScheduler.Infrastructure.Persistence;
 
 public sealed class ScheduledTaskRepository(AppDbContext db)
 {
-    public async Task<IReadOnlyList<ScheduledTask>> GetAllAsync(CancellationToken cancellationToken = default) =>
-        await db.ScheduledTasks.AsNoTracking().OrderBy(t => t.NextRunAt).ToListAsync(cancellationToken);
-
-    public async Task<IReadOnlyList<ScheduledTask>> GetDueTasksAsync(CancellationToken cancellationToken = default)
+    public IReadOnlyList<ScheduledTask> GetAll(CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
+        return db.ScheduledTasks.AsNoTracking().OrderBy(t => t.NextRunAt).ToList();
+    }
+
+    public IReadOnlyList<ScheduledTask> GetDueTasks(CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
         var now = DateTime.UtcNow;
-        return await db.ScheduledTasks.AsNoTracking()
+        return db.ScheduledTasks.AsNoTracking()
             .Where(t => t.IsActive && t.NextRunAt <= now)
             .OrderBy(t => t.NextRunAt)
-            .ToListAsync(cancellationToken);
+            .ToList();
     }
 
-    public async Task<ScheduledTask?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default) =>
-        await db.ScheduledTasks.FirstOrDefaultAsync(t => t.Id == id, cancellationToken);
-
-    public async Task AddAsync(ScheduledTask task, CancellationToken cancellationToken = default)
+    public ScheduledTask? GetById(Guid id, CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
+        return db.ScheduledTasks.FirstOrDefault(t => t.Id == id);
+    }
+
+    public void Add(ScheduledTask task, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
         db.ScheduledTasks.Add(task);
-        await db.SaveChangesAsync(cancellationToken);
+        db.SaveChanges();
     }
 
-    public async Task UpdateAsync(ScheduledTask task, CancellationToken cancellationToken = default)
+    public void Update(ScheduledTask task, CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
         db.ScheduledTasks.Update(task);
-        await db.SaveChangesAsync(cancellationToken);
+        db.SaveChanges();
     }
 
-    public async Task<bool> DeleteAsync(Guid id, CancellationToken cancellationToken = default)
+    public bool Delete(Guid id, CancellationToken cancellationToken = default)
     {
-        var affected = await db.ScheduledTasks.Where(t => t.Id == id).ExecuteDeleteAsync(cancellationToken);
+        cancellationToken.ThrowIfCancellationRequested();
+        var affected = db.ScheduledTasks.Where(t => t.Id == id).ExecuteDelete();
         return affected > 0;
     }
 }

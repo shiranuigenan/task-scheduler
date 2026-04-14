@@ -14,7 +14,7 @@ public sealed class TaskSchedulerBackgroundService(
 {
     private static readonly TimeSpan PollInterval = TimeSpan.FromSeconds(15);
 
-    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+    protected override Task ExecuteAsync(CancellationToken stoppingToken)
     {
         logger.LogInformation("Task scheduler started; polling every {Seconds}s", PollInterval.TotalSeconds);
 
@@ -22,7 +22,7 @@ public sealed class TaskSchedulerBackgroundService(
         {
             try
             {
-                await PollOnceAsync(stoppingToken).ConfigureAwait(false);
+                PollOnce(stoppingToken);
             }
             catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
             {
@@ -33,49 +33,44 @@ public sealed class TaskSchedulerBackgroundService(
                 logger.LogError(ex, "Scheduler poll cycle failed");
             }
 
-            try
-            {
-                await Task.Delay(PollInterval, stoppingToken).ConfigureAwait(false);
-            }
-            catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
-            {
+            if (stoppingToken.WaitHandle.WaitOne(PollInterval))
                 break;
-            }
         }
 
         logger.LogInformation("Task scheduler stopped");
+        return Task.CompletedTask;
     }
 
-    private async Task PollOnceAsync(CancellationToken stoppingToken)
+    private void PollOnce(CancellationToken stoppingToken)
     {
         using var pollScope = scopeFactory.CreateScope();
         var repository = pollScope.ServiceProvider.GetRequiredService<ScheduledTaskRepository>();
-        var due = await repository.GetDueTasksAsync(stoppingToken).ConfigureAwait(false);
+        var due = repository.GetDueTasks(stoppingToken);
 
         foreach (var snapshot in due)
         {
             var groupKey = ResolveGroupKey(snapshot);
 
-            var lease = await groupLockManager.TryAcquireAsync(groupKey, stoppingToken).ConfigureAwait(false);
+            var lease = groupLockManager.TryAcquire(groupKey, stoppingToken);
             if (lease is null)
                 continue;
 
             var taskId = snapshot.Id;
 
-            _ = RunTaskSafeAsync(taskId, lease, stoppingToken);
+            _ = Task.Run(() => RunTaskSafe(taskId, lease, stoppingToken), stoppingToken);
         }
     }
 
     private static string ResolveGroupKey(ScheduledTask task) =>
         string.IsNullOrWhiteSpace(task.GroupKey) ? task.Id.ToString() : task.GroupKey.Trim();
 
-    private async Task RunTaskSafeAsync(Guid taskId, IAsyncDisposable groupLease, CancellationToken stoppingToken)
+    private void RunTaskSafe(Guid taskId, IDisposable groupLease, CancellationToken stoppingToken)
     {
         try
         {
-            await using (groupLease)
+            using (groupLease)
             {
-                await RunTaskCoreAsync(taskId, stoppingToken).ConfigureAwait(false);
+                RunTaskCore(taskId, stoppingToken);
             }
         }
         catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
@@ -87,15 +82,15 @@ public sealed class TaskSchedulerBackgroundService(
         }
     }
 
-    private async Task RunTaskCoreAsync(Guid taskId, CancellationToken stoppingToken)
+    private void RunTaskCore(Guid taskId, CancellationToken stoppingToken)
     {
-        await using var execScope = scopeFactory.CreateAsyncScope();
+        using var execScope = scopeFactory.CreateScope();
         var sp = execScope.ServiceProvider;
         var repository = sp.GetRequiredService<ScheduledTaskRepository>();
         var jobFactory = sp.GetRequiredService<JobFactory>();
         var log = sp.GetRequiredService<ILogger<TaskSchedulerBackgroundService>>();
 
-        var task = await repository.GetByIdAsync(taskId, stoppingToken).ConfigureAwait(false);
+        var task = repository.GetById(taskId, stoppingToken);
         if (task is null || !task.IsActive)
             return;
 
@@ -109,7 +104,7 @@ public sealed class TaskSchedulerBackgroundService(
         {
             log.LogError("No handler registered for job {JobName} (task {TaskId})", task.JobName, taskId);
             AdvanceSchedule(task, now);
-            await repository.UpdateAsync(task, stoppingToken).ConfigureAwait(false);
+            repository.Update(task, stoppingToken);
             return;
         }
 
@@ -121,7 +116,7 @@ public sealed class TaskSchedulerBackgroundService(
             stoppingToken.ThrowIfCancellationRequested();
             try
             {
-                await handler.ExecuteAsync(task.ParametersJson, stoppingToken).ConfigureAwait(false);
+                handler.Execute(task.ParametersJson, stoppingToken);
                 lastError = null;
                 break;
             }
@@ -138,7 +133,7 @@ public sealed class TaskSchedulerBackgroundService(
             log.LogError(lastError, "Job {JobName} task {TaskId} exhausted retries", task.JobName, taskId);
 
         AdvanceSchedule(task, DateTime.UtcNow);
-        await repository.UpdateAsync(task, stoppingToken).ConfigureAwait(false);
+        repository.Update(task, stoppingToken);
     }
 
     private static void AdvanceSchedule(ScheduledTask task, DateTime now)

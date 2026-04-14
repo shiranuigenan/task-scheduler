@@ -3,8 +3,8 @@
 ## IJobHandler
 
 Interface:
-- string Name
-- Task ExecuteAsync(string parametersJson, CancellationToken token)
+- `string Name`
+- `void Execute(string parametersJson, CancellationToken cancellationToken)`
 
 ## Rules
 

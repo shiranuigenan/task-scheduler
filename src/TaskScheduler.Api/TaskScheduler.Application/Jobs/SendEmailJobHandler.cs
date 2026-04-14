@@ -7,7 +7,7 @@ public sealed class SendEmailJobHandler(ILogger<SendEmailJobHandler> logger) : I
 {
     public string Name => "SendEmail";
 
-    public Task ExecuteAsync(string parametersJson, CancellationToken cancellationToken)
+    public void Execute(string parametersJson, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
         var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
@@ -17,8 +17,7 @@ public sealed class SendEmailJobHandler(ILogger<SendEmailJobHandler> logger) : I
         if (string.IsNullOrWhiteSpace(parameters.To) || string.IsNullOrWhiteSpace(parameters.Subject))
             throw new JsonException("SendEmail requires non-empty 'to' and 'subject'.");
 
-        logger.LogInformation("SendEmail job: to={To}, subject={Subject}", parameters.To, parameters.Subject);
-        return Task.CompletedTask;
+        logger.LogWarning("SendEmail job: to={To}, subject={Subject}", parameters.To, parameters.Subject);
     }
 
     private sealed record SendEmailParameters(string To, string Subject);

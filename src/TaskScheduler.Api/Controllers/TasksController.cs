@@ -10,16 +10,16 @@ public sealed class TasksController(ScheduledTaskService taskService) : Controll
 {
     [HttpGet]
     [ProducesResponseType(typeof(IReadOnlyList<TaskResponse>), StatusCodes.Status200OK)]
-    public async Task<ActionResult<IReadOnlyList<TaskResponse>>> GetTasks(CancellationToken cancellationToken)
+    public ActionResult<IReadOnlyList<TaskResponse>> GetTasks(CancellationToken cancellationToken)
     {
-        var items = await taskService.GetAllAsync(cancellationToken);
+        var items = taskService.GetAll(cancellationToken);
         return Ok(items);
     }
 
     [HttpPost]
     [ProducesResponseType(typeof(TaskResponse), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<ActionResult<TaskResponse>> CreateTask(
+    public ActionResult<TaskResponse> CreateTask(
         [FromBody] CreateTaskRequest request,
         CancellationToken cancellationToken)
     {
@@ -28,7 +28,7 @@ public sealed class TasksController(ScheduledTaskService taskService) : Controll
 
         try
         {
-            var created = await taskService.CreateAsync(request, cancellationToken);
+            var created = taskService.Create(request, cancellationToken);
             return StatusCode(StatusCodes.Status201Created, created);
         }
         catch (InvalidOperationException ex)
@@ -40,11 +40,11 @@ public sealed class TasksController(ScheduledTaskService taskService) : Controll
     [HttpPut("{id:guid}/activate")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> Activate(Guid id, CancellationToken cancellationToken)
+    public IActionResult Activate(Guid id, CancellationToken cancellationToken)
     {
         try
         {
-            await taskService.ActivateAsync(id, cancellationToken);
+            taskService.Activate(id, cancellationToken);
             return NoContent();
         }
         catch (KeyNotFoundException)
@@ -56,11 +56,11 @@ public sealed class TasksController(ScheduledTaskService taskService) : Controll
     [HttpDelete("{id:guid}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> Delete(Guid id, CancellationToken cancellationToken)
+    public IActionResult Delete(Guid id, CancellationToken cancellationToken)
     {
         try
         {
-            await taskService.DeleteAsync(id, cancellationToken);
+            taskService.Delete(id, cancellationToken);
             return NoContent();
         }
         catch (KeyNotFoundException)

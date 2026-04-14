@@ -7,7 +7,7 @@ public sealed class CleanupJobHandler(ILogger<CleanupJobHandler> logger) : IJobH
 {
     public string Name => "Cleanup";
 
-    public Task ExecuteAsync(string parametersJson, CancellationToken cancellationToken)
+    public void Execute(string parametersJson, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
         var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
@@ -17,8 +17,7 @@ public sealed class CleanupJobHandler(ILogger<CleanupJobHandler> logger) : IJobH
         if (parameters.Days < 0)
             throw new JsonException("Cleanup 'days' must be non-negative.");
 
-        logger.LogInformation("Cleanup job: remove data older than {Days} days", parameters.Days);
-        return Task.CompletedTask;
+        logger.LogWarning("Cleanup job: remove data older than {Days} days", parameters.Days);
     }
 
     private sealed record CleanupParameters(int Days);

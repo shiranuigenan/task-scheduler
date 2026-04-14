@@ -12,20 +12,17 @@ builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
-if (app.Environment.IsDevelopment())
-{
-    app.MapOpenApi();
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+app.MapOpenApi();
+app.UseSwagger();
+app.UseSwaggerUI();
 
 app.UseAuthorization();
 app.MapControllers();
 
-await using (var dbScope = app.Services.CreateAsyncScope())
+using (var dbScope = app.Services.CreateScope())
 {
     var db = dbScope.ServiceProvider.GetRequiredService<AppDbContext>();
-    await db.Database.MigrateAsync();
+    db.Database.Migrate();
 }
 
 app.Run();
